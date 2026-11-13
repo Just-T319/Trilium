@@ -6,7 +6,14 @@ nodeLinker: hoisted
 
 # pnpm v11 introduced a 1-day default release age; keep at 0 so Renovate-driven
 # updates and regular installs aren't stalled.
-minimumReleaseAge: 0
+minimumReleaseAge: 1440
+
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  - semver@5.7.2
+  - semver@6.3.1
+  - langium@3.3.1
+  - paper@0.16.0
 
 # Don't fail when the installed pnpm is a slightly different version than packageManager declares.
 pmOnFail: ignore
@@ -108,6 +115,17 @@ overrides:
   # extract-zip's yauzl@2 hangs electron-forge packaging on Node >=24.16 (electron/forge#4277,
   # electron/electron#51619). yauzl@>=3.3.1 is the maintainer-recommended fix.
   "extract-zip>yauzl": "3.4.0"
+  '@hono/node-server@>=2.0.0 <2.1.6': 2.1.7
+  glob@>=9.0.0 <=14.0.1: 14.0.5
+  hono@<4.13.16: ^4.13.16
+  image-size@>=0.6.3 <=2.0.2: ^2.0.3
+  minimatch@>=7.0.0 <11.0.1: ^11.0.1
+  node-forge@<=1.4.2: ^1.4.3
+  qs@>=6.7.0 <=6.16.0: ^6.16.1
+  undici@>=4.0.0 <6.29.1: ^6.29.1
+  undici@>=7.0.0 <7.30.1: ^7.30.1
+  undici@>=8.0.0 <8.12.2: ^8.12.2
+  uuid@<11.1.1: ^11.1.1
 
 # Trilium's Claude Agent provider (apps/server) runs the SDK in
 # "bring-your-own-binary" mode (pathToClaudeCodeExecutable), so the ~250 MB
