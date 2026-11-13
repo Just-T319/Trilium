@@ -42,6 +42,7 @@ const ALLOWED_OPTIONS = new Set<OptionNames>([
     "syncServerTimeout",
     "syncServerTimeoutTimeScale",
     "syncProxy",
+    "syncAutomatically",
     "hoistedNoteId",
     "mainFontSize",
     "mainFontFamily",

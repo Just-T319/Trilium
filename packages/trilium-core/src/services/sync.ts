@@ -867,12 +867,31 @@ function getTotalPullCount() {
     return totalPullCount;
 }
 
+/**
+ * Whether the timer may start a sync on its own. With `syncAutomatically` off, sync runs only when
+ * asked for (the sync status button, `sync/now`). An initial sync from a server that was interrupted
+ * by a crash or restart is resumed only by this timer, though, so it keeps running until the
+ * database is initialized, whatever the option says.
+ */
+export function isAutomaticSyncAllowed() {
+    return !sqlInit.isDbInitialized() || optionService.getOptionOrNull("syncAutomatically") !== "false";
+}
+
+async function automaticSync() {
+    if (!isAutomaticSyncAllowed()) {
+        return;
+    }
+
+    await sync();
+}
+
 function startSyncTimer() {
     becca_loader.beccaLoaded.then(() => {
-        setInterval(cls.wrap(sync), 60000);
+        // The option is read on every tick, so changing it takes effect without a restart.
+        setInterval(cls.wrap(automaticSync), 60000);
 
         // kickoff initial sync immediately
-        setTimeout(cls.wrap(sync), 5000);
+        setTimeout(cls.wrap(automaticSync), 5000);
 
         // called just so ws.setLastSyncedPush() is called
         getLastSyncedPush();

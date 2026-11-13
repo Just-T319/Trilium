@@ -1221,6 +1221,7 @@
   },
   "sync_status": {
     "unknown": "<p>Sync status will be known once the next sync attempt starts.</p><p>Click to trigger sync now.</p>",
+    "unknown_manual": "<p>Automatic sync is off, so this device syncs only when asked to.</p><p>Click to sync now.</p>",
     "connected_with_changes": "<p>Connected to the sync server. <br>There are some outstanding changes yet to be synced.</p><p>Click to trigger sync.</p>",
     "connected_no_changes": "<p>Connected to the sync server.<br>All changes have been already synced.</p><p>Click to trigger sync.</p>",
     "disconnected_with_changes": "<p>Establishing the connection to the sync server was unsuccessful.<br>There are some outstanding changes yet to be synced.</p><p>Click to trigger sync.</p>",
@@ -2529,6 +2530,8 @@
     "timeout_description": "Time to wait before giving up on a slow connection.",
     "proxy_label": "Proxy server",
     "proxy_description": "Leave blank to use system proxy (desktop only). Use \"noproxy\" to bypass all proxies.",
+    "auto_sync": "Sync automatically",
+    "auto_sync_description": "Sync with the server every minute. When off, this device syncs only when you click the sync status icon in the launch bar. If the same note is edited on two devices between syncs, the newer change wins.",
     "save": "Save",
     "help": "Help",
     "test_title": "Test Connection",

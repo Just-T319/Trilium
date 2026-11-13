@@ -32,7 +32,10 @@ vi.mock("../../react/hooks", async (importOriginal) => ({
         mocks.stored[name] ?? "",
         async (value: string) => void mocks.saved.push([ name, value ])
     ],
-    useTriliumOptionBool: (name: string) => [ mocks.stored[name] === "true", vi.fn() ]
+    useTriliumOptionBool: (name: string) => [
+        mocks.stored[name] === "true",
+        async (value: boolean) => void mocks.saved.push([ name, String(value) ])
+    ]
 }));
 
 vi.mock("./components/OptionsPageHeader", () => ({ default: () => <div className="header-stub" /> }));
@@ -147,6 +150,20 @@ describe("the sync settings", () => {
             .toBe("https://override.example.com");
         // Beside the test, not among the settings: the button it explains shares its card.
         expect(row?.closest(".tn-card")).toBe(testButton()?.closest(".tn-card"));
+    });
+
+    it("offers automatic sync as a toggle among the settings, and saves it when flipped", () => {
+        mocks.stored.syncAutomatically = "true";
+        open();
+
+        const row = host.querySelector(".tn-card-option input.switch-toggle")?.closest(".tn-card");
+        expect(row?.querySelector(".tn-card-heading")?.textContent).toBe("sync_2.config_title");
+
+        const toggle = host.querySelector<HTMLInputElement>("input.switch-toggle");
+        expect(toggle?.checked).toBe(true);
+        act(() => void toggle?.dispatchEvent(new Event("input", { bubbles: true })));
+
+        expect(mocks.saved).toEqual([ [ "syncAutomatically", "false" ] ]);
     });
 
     it("reports sync turned off rather than an empty address when the override disables it", () => {

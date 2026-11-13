@@ -14,7 +14,7 @@ import { type ExecOpts, initRequest, type RequestProvider } from "./request.js";
 import { getSql } from "./sql/index.js";
 import setupService from "./setup.js";
 import sqlInit from "./sql_init.js";
-import syncService, { estimateEntityChangeRecordSize, MAX_SECTOR_RESYNC_ATTEMPTS, MAX_SYNC_ROUNDS, serializeSyncRequestBody } from "./sync.js";
+import syncService, { estimateEntityChangeRecordSize, isAutomaticSyncAllowed, MAX_SECTOR_RESYNC_ATTEMPTS, MAX_SYNC_ROUNDS, serializeSyncRequestBody } from "./sync.js";
 import syncOptions from "./sync_options.js";
 import syncUpdateService from "./sync_update.js";
 import { encodeBase64 } from "./utils/binary.js";
@@ -692,6 +692,106 @@ describe("sync service", () => {
 
         expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 60000);
         expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 5000);
+    });
+
+    describe("automatic sync option", () => {
+        let syncAutomaticallyBefore: string | null;
+
+        beforeEach(() => {
+            syncAutomaticallyBefore = options.getOptionOrNull("syncAutomatically");
+        });
+        afterEach(() => {
+            cls.init(() => options.setOption("syncAutomatically", syncAutomaticallyBefore ?? "true"));
+        });
+
+        const setSyncAutomatically = (value: string) => cls.init(() => options.setOption("syncAutomatically", value));
+
+        /** Starts the timer with both timers mocked, and returns the callbacks it scheduled. */
+        async function startTimer() {
+            const setIntervalSpy = vi.spyOn(globalThis, "setInterval").mockReturnValue(0 as unknown as ReturnType<typeof setInterval>);
+            const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout").mockReturnValue(0 as unknown as ReturnType<typeof setTimeout>);
+
+            syncService.startSyncTimer();
+            await Promise.resolve();
+            await Promise.resolve();
+
+            const interval = setIntervalSpy.mock.calls.find(([, ms]) => ms === 60000)?.[0] as () => void;
+            const kickoff = setTimeoutSpy.mock.calls.find(([, ms]) => ms === 5000)?.[0] as () => void;
+            vi.mocked(globalThis.setTimeout).mockRestore();
+            vi.mocked(globalThis.setInterval).mockRestore();
+            return { interval, kickoff };
+        }
+
+        /** Lets a fire-and-forget sync started by a timer callback run to its first request. */
+        const settle = () => new Promise((resolve) => setTimeout(resolve, 20));
+        /** Waits for a sync started by a timer callback to finish, so it cannot leak into the next test. */
+        const syncCompleted = (syncFinished: ReturnType<typeof vi.spyOn>) =>
+            vi.waitFor(() => expect(syncFinished).toHaveBeenCalled());
+
+        it("is allowed by default and when the option is on", () => {
+            setSyncAutomatically("true");
+            expect(isAutomaticSyncAllowed()).toBe(true);
+        });
+
+        it("is not allowed when the option is off on an initialized database", () => {
+            setSyncAutomatically("false");
+            vi.spyOn(sqlInit, "isDbInitialized").mockReturnValue(true);
+            expect(isAutomaticSyncAllowed()).toBe(false);
+        });
+
+        it("is still allowed when the option is off but an initial sync has not finished yet", () => {
+            setSyncAutomatically("false");
+            vi.spyOn(sqlInit, "isDbInitialized").mockReturnValue(false);
+            expect(isAutomaticSyncAllowed()).toBe(true);
+        });
+
+        it("the timer callbacks sync when the option is on", async () => {
+            setSyncAutomatically("true");
+            const syncFinished = vi.spyOn(ws, "syncFinished");
+            const { interval } = await startTimer();
+
+            interval();
+            await syncCompleted(syncFinished);
+        });
+
+        it("neither the interval nor the kickoff syncs when the option is off", async () => {
+            setSyncAutomatically("false");
+            vi.spyOn(sqlInit, "isDbInitialized").mockReturnValue(true);
+            const { interval, kickoff } = await startTimer();
+
+            interval();
+            kickoff();
+            await settle();
+
+            expect(requestLog).toHaveLength(0);
+        });
+
+        it("reads the option on every tick, so turning it back on needs no restart", async () => {
+            setSyncAutomatically("false");
+            vi.spyOn(sqlInit, "isDbInitialized").mockReturnValue(true);
+            const { interval } = await startTimer();
+
+            interval();
+            await settle();
+            expect(requestLog).toHaveLength(0);
+
+            const syncFinished = vi.spyOn(ws, "syncFinished");
+            setSyncAutomatically("true");
+            interval();
+            await syncCompleted(syncFinished);
+        });
+
+        it("the kickoff still resumes an interrupted initial sync when the option is off", async () => {
+            setSyncAutomatically("false");
+            vi.spyOn(sqlInit, "isDbInitialized").mockReturnValue(false);
+            // A converged sync marks the database initialized; the real database already is.
+            vi.spyOn(sqlInit, "setDbAsInitialized").mockImplementation(() => {});
+            const syncFinished = vi.spyOn(ws, "syncFinished");
+            const { kickoff } = await startTimer();
+
+            kickoff();
+            await syncCompleted(syncFinished);
+        });
     });
 });
 

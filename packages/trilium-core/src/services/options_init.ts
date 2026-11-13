@@ -146,6 +146,8 @@ const defaultOptions: DefaultOption[] = [
         isSynced: false
     },
     { name: "syncMaxBlobContentSize", value: "0", isSynced: false },
+    // Per device, so that turning automatic sync off on one device does not turn it off everywhere.
+    { name: "syncAutomatically", value: "true", isSynced: false },
     { name: "revisionSnapshotTimeInterval", value: "600", isSynced: true },
     { name: "revisionSnapshotTimeIntervalTimeScale", value: "60", isSynced: true }, // default to Minutes
     { name: "revisionSnapshotNumberLimit", value: "-1", isSynced: true },

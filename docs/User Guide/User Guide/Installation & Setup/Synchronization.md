@@ -3,7 +3,7 @@ Trilium is an offline-first note-taking application that stores all data locally
 
 ![](Synchronization_image.jpg)
 
-In this setup, a central server (referred to as the _sync server_) and multiple _client_ (or _desktop_) instances synchronize with the sync server. Once configured, synchronization is automatic and ongoing, requiring no manual intervention.
+In this setup, a central server (referred to as the _sync server_) and multiple _client_ (or _desktop_) instances synchronize with the sync server. Once configured, synchronization is automatic and ongoing, requiring no manual intervention, unless you turn it off as described under _Automatic and manual synchronization_ below.
 
 ## Setting Up Synchronization
 
@@ -44,6 +44,21 @@ This method allows two desktop instances to synchronize between each other witho
 
 > [!WARNING]
 > Since v0.104.0, LAN access needs to be enabled to allow this sync to function. See <a class="reference-link" href="Desktop%20Installation/Network%20Access.md">Network Access</a> for information on how to do so.
+
+## Automatic and manual synchronization
+
+By default, each instance synchronizes with the sync server shortly after it starts and then every minute.
+
+To synchronize only when you ask for it, go to <a class="reference-link" href="../Basic%20Concepts%20and%20Features/UI%20Elements/Options.md">Options</a> → _Sync_ and turn off _Sync automatically_. The setting applies to the current device only, so other devices keep synchronizing on their own.
+
+With automatic sync off:
+
+*   To synchronize, click the sync status icon in the&nbsp;<a class="reference-link" href="../Basic%20Concepts%20and%20Features/UI%20Elements/Launch%20Bar.md">Launch Bar</a>. Its tooltip says that automatic sync is off until the first sync has run.
+*   Sharing or unsharing a note no longer synchronizes right away; the change reaches the sync server with the next manual sync.
+*   An initial synchronization from a sync server that was interrupted, for example by closing the application, still resumes on its own the next time the application starts.
+
+> [!WARNING]
+> The longer an instance goes without synchronizing, the more likely it is that the same note gets edited on two devices in between. Trilium then keeps the newer change, as described under _Conflict Resolution_ below.
 
 ## Proxy Configuration
 

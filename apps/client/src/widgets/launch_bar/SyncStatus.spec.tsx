@@ -109,6 +109,18 @@ describe("SyncStatus", () => {
         expect(body.textContent).not.toContain("https://stored.example/");
     });
 
+    it("says that sync waits for a click when automatic sync is off, and syncs when pressed", () => {
+        mocks.options.syncAutomatically = "false";
+        mount();
+
+        const { body } = showTooltip();
+        expect(body.textContent).toContain("Automatic sync is off");
+        expect(body.textContent).not.toContain("Sync status will be known");
+
+        icon()?.click();
+        expect(mocks.syncNow).toHaveBeenCalledTimes(1);
+    });
+
     it("shows the button when a config override supplies the address, whatever is stored", () => {
         mocks.options.syncServerHost = "";
         mount();

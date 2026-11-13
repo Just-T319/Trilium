@@ -76,6 +76,8 @@ export interface OptionDefinitions extends KeyboardShortcutsOptions<KeyboardActi
     syncServerTimeout: string;
     syncServerTimeoutTimeScale: number;
     syncProxy: string;
+    /** Whether this device syncs on its own every minute. When off, sync runs only when asked for. */
+    syncAutomatically: boolean;
     syncIncomplete: boolean;
     syncMaxBlobContentSize: number;
     mainFontFamily: FontFamily;

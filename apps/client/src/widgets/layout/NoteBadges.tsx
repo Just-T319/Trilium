@@ -12,6 +12,7 @@ import { copyTextWithToast } from "../../services/clipboard_ext";
 import dialog from "../../services/dialog";
 import { t } from "../../services/i18n";
 import { goToLinkExt } from "../../services/link";
+import options from "../../services/options";
 import server from "../../services/server";
 import {
     buildShareLink, getShareId, getShareScope, type ShareScope
@@ -384,7 +385,11 @@ export function useShareState(note: FNote | null | undefined) {
             await server.remove(`branches/${shareBranch.branchId}?taskId=no-progress-reporting`);
         }
 
-        sync.syncNow(true);
+        // Publishes the change to the sync server straight away, unless this device syncs only
+        // when asked to.
+        if (options.get("syncAutomatically") !== "false") {
+            sync.syncNow(true);
+        }
     }, [ note ]);
 
     return [ isShared, switchShareState ] as const;

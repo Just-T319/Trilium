@@ -7,6 +7,7 @@ import toast from "../../../services/toast";
 import Button from "../../react/Button";
 import { Card, OptionCardSection } from "../../react/Card";
 import FormTextBox from "../../react/FormTextBox";
+import FormToggle from "../../react/FormToggle";
 import { useTriliumOption, useTriliumOptionBool } from "../../react/hooks";
 import OptionsPageHeader from "./components/OptionsPageHeader";
 import TimeSelector from "./components/TimeSelector";
@@ -81,6 +82,8 @@ export function SyncConfiguration() {
                     />
                 </OptionCardSection>
 
+                <AutomaticSync />
+
                 <OptionCardSection
                     name="sync-server-timeout"
                     label={t("sync_2.timeout")}
@@ -111,6 +114,21 @@ export function SyncConfiguration() {
                 </OptionCardSection>
             </Card>
         </>
+    );
+}
+
+/** Whether this device syncs every minute on its own, or only when asked to. Per device. */
+function AutomaticSync() {
+    const [syncAutomatically, setSyncAutomatically] = useTriliumOptionBool("syncAutomatically");
+
+    return (
+        <OptionCardSection
+            name="sync-automatically"
+            label={t("sync_2.auto_sync")}
+            description={t("sync_2.auto_sync_description")}
+        >
+            <FormToggle currentValue={syncAutomatically} onChange={setSyncAutomatically} />
+        </OptionCardSection>
     );
 }
 

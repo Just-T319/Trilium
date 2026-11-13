@@ -52,11 +52,20 @@ const STATE_MAPPINGS: Record<SyncState, StateMapping> = {
 
 export default function SyncStatus({ launcherNote }: LauncherNoteProps) {
     const { syncState, pullProgress } = useSyncStatus();
-    const { title, icon, hasChanges } = STATE_MAPPINGS[syncState];
+    const { icon, hasChanges } = STATE_MAPPINGS[syncState];
     const spanRef = useRef<HTMLSpanElement>(null);
     const [ storedSyncServerHost ] = useTriliumOption("syncServerHost");
     const [ effectiveSyncServerHost ] = useTriliumOption("effectiveSyncServerHost");
     const [ isSyncServerHostOverridden ] = useTriliumOptionBool("syncServerHostOverridden");
+    // Read as a string so that a missing option counts as on, as it does on the server.
+    const [ syncAutomaticallyOption ] = useTriliumOption("syncAutomatically");
+    const syncAutomatically = syncAutomaticallyOption !== "false";
+
+    // With automatic sync off, "unknown" lasts until the first click, so say why instead of
+    // promising a next attempt that will not come on its own.
+    const title = syncState === "unknown" && !syncAutomatically
+        ? t("sync_status.unknown_manual")
+        : STATE_MAPPINGS[syncState].title;
 
     useStaticTooltip(spanRef, {
         html: true,
@@ -77,7 +86,7 @@ export default function SyncStatus({ launcherNote }: LauncherNoteProps) {
         >
             <div class="sync-status">
                 <span
-                    key={syncState} // Force re-render when state changes to update tooltip content.
+                    key={`${syncState}-${syncAutomatically}`} // Force re-render when the tooltip content changes.
                     ref={spanRef}
                     className={clsx("sync-status-icon", `sync-status-${syncState}`, icon)}
                     onClick={() => {

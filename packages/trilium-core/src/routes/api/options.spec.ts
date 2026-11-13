@@ -213,6 +213,13 @@ describe("Options API (core)", () => {
         expect(getOptionValue("zoomFactor")).toBe("1.5");
     });
 
+    it("lets the client turn automatic sync off and back on", async () => {
+        expect((await api.put("/api/options/syncAutomatically/false")).status).toBe(204);
+        expect(getOptionValue("syncAutomatically")).toBe("false");
+        expect((await api.put("/api/options/syncAutomatically/true")).status).toBe(204);
+        expect(getOptionValue("syncAutomatically")).toBe("true");
+    });
+
     it("rejects a not-allowed single option with a ValidationError (400)", async () => {
         const res = await api.put("/api/options/passwordVerificationHash/hacked");
         expect(res.status).toBe(400);
